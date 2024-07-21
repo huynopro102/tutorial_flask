@@ -14,6 +14,10 @@ def hello():
 def content():
      return render_template("contact.html")
 
+@app.route("/login")
+def login():
+     return render_template("login.html")
+
 @app.route("/user/<name>")
 def printName(name):
     if name == "admin":
