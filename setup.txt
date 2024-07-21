@@ -1,0 +1,14 @@
+ctransformers
+transformers
+langchain
+langchain-community
+torch
+pypdf
+sentence-transformers
+gpt4all
+faiss-cpu
+openai
+pymupdf
+python-dotenv
+# chay lenh pip install -r setup.txt để tải các thư viện
+
