@@ -6,6 +6,7 @@ from langchain.prompts import PromptTemplate
 model_file = "models/vinallama-2.7b-chat_q5_0.gguf"
 
 
+
 # Load LLM
 def load_llm(model_file):
     llm = CTransformers(
@@ -40,7 +41,7 @@ prompt = creat_prompt(template)
 llm = load_llm(model_file)
 llm_chain = create_simple_chain(prompt, llm)
 
-question = "tam giác có bao nhiêu cạnh ?"
+question = """một cộng một bằng mấy ?"""
 response = llm_chain.invoke({"question":question})
 print(response)
 
