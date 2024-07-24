@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, session, jsonify
+from flask import Flask, redirect, url_for, render_template, request, session, jsonify 
 from dotenv import load_dotenv
 import os
 
@@ -97,6 +97,11 @@ def api_chat():
     
     return jsonify({"answer": answer})
 
+
+# not found
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("notfound404.html") , 404
 
 if __name__ == "__main__":
     # Get the port from environment variable or default to 5000
