@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}This is a chatbox page{% endblock %}
+
+{% block content %}
+
+<h1>File Upload and Training</h1>
+<div class="file-upload">
+    <label for="pdfFile">Upload PDF file:</label>
+    <input type="file" id="pdfFile" accept=".pdf">
+</div>
+<div class="file-upload">
+    <label for="txtFile">Upload TXT file:</label>
+    <input type="file" id="txtFile" accept=".txt">
+</div>
+<button id="trainButton" onclick="startTraining()">Train Data</button>
+<div class="spinner" id="spinner"></div>
+<div id="result"></div>
+
+<script>
+    function startTraining() {
+        const pdfFile = document.getElementById('pdfFile').files[0];
+        const txtFile = document.getElementById('txtFile').files[0];
+
+        if (!pdfFile || !txtFile) {
+            alert('Please upload both PDF and TXT files.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('pdf', pdfFile);
+        formData.append('txt', txtFile);
+
+        document.getElementById('trainButton').disabled = true;
+        document.getElementById('spinner').style.display = 'block';
+
+        fetch('/train', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('result').innerText = data.message;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('result').innerText = 'An error occurred during training.';
+        })
+        .finally(() => {
+            document.getElementById('trainButton').disabled = false;
+            document.getElementById('spinner').style.display = 'none';
+        });
+    }
+</script>
+{% endblock %}

@@ -1,7 +1,5 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter, CharacterTextSplitter
-from langchain_community.document_loaders import PyMuPDFLoader, DirectoryLoader
-from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_text_splitters import  CharacterTextSplitter
+from sentence_transformers import SentenceTransformer
 #Sử dụng HuggingFaceEmbeddings thay cho GPT4AllEmbeddings nếu gặp vấn đề tương thích.
 pdf_data_path = "data"
 vector_db_path = "vector_db"  # Đảm bảo khai báo biến này nếu chưa khai báo
@@ -30,36 +28,36 @@ Oleg et al., 2013; Calvo et al., 2014; Bulgari et al.,
     # chia nhỏ văn bản
     text_splitter = CharacterTextSplitter(
         separator="\n",
-        chunk_size=500,
-        chunk_overlap=50,  # Đúng tham số là chunk_overlap
+        chunk_size=20,
+        chunk_overlap=5,  # Đúng tham số là chunk_overlap
         length_function=len,
     )
 
     chunks = text_splitter.split_text(raw_text)
 
     # Embedding
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+# embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     # Đưa vào Faiss Vector DB
-    db = FAISS.from_texts(texts=chunks, embedding=embedding_model)
-    db.save_local(vector_db_path)
-    return db
+    # db = FAISS.from_texts(texts=chunks, embedding=embedding_model)
+    # db.save_local(vector_db_path)
+    # return db
 
 
-def create_db_from_files():
-    # Khai báo loader để quét toàn bộ thư mục data
-    loader = DirectoryLoader(pdf_data_path, glob="*.pdf", loader_cls=PyMuPDFLoader)
-    documents = loader.load()
+# def create_db_from_files():
+#     # Khai báo loader để quét toàn bộ thư mục data
+#     loader = DirectoryLoader(pdf_data_path, glob="*.pdf", loader_cls=PyMuPDFLoader)
+#     documents = loader.load()
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=50)
-    chunks = text_splitter.split_documents(documents)
+#     text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=50)
+#     chunks = text_splitter.split_documents(documents)
 
-    # Embedding
-    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    db = FAISS.from_documents(chunks, embedding_model)
-    db.save_local(vector_db_path)
-    return db
+#     # Embedding
+#     embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+#     db = FAISS.from_documents(chunks, embedding_model)
+#     db.save_local(vector_db_path)
+#     return db
 
 
-# create_vector_db_from_text()
-create_db_from_files()
+create_vector_db_from_text()
+# create_db_from_files()

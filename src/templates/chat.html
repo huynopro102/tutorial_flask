@@ -13,6 +13,9 @@
         padding: 10px;
         margin-bottom: 10px;
         background-color: #f8f9fa;
+        margin-left: auto;
+        margin-right: auto; /* Center the chat box */
+        margin-top: 3rem;
     }
 
     .message {
@@ -38,6 +41,7 @@
         display: none;
         font-size: 20px;
         margin-top: 10px;
+        text-align: center; /* Center the loader and text */
     }
 
     .loader {
@@ -47,74 +51,93 @@
         width: 20px;
         height: 20px;
         animation: spin 2s linear infinite;
+        display: inline-block; /* Make loader inline to align with text */
+        vertical-align: middle; /* Align loader vertically with text */
+        margin-right: 10px; /* Add some space between loader and text */
     }
 
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+
+    #chat-form {
+        display: flex;
+        justify-content: center; /* Center the input and button horizontally */
+        align-items: center; /* Center the input and button vertically */
+        margin-top: 10px;
+        margin-bottom: 3rem;
+    }
+
+    #message-input {
+        width: 70%; /* Adjust the width to fit with the button */
+        margin-right: 10px; /* Add some space between the input and button */
+    }
+
+    button {
+        width: 20%; /* Adjust the button width */
+    }
 </style>
 
 <div id="chat-box" class="container border rounded p-3 mb-3 bg-light"></div>
-
-<form id="chat-form" class="d-flex">
-    <input type="text" id="message-input" class="form-control me-2" placeholder="Type your message here..." autocomplete="off" style="width: 80%;">
-    <button type="submit" class="btn btn-primary">Send</button>
-</form>
 
 <div id="loading" class="text-center mt-2">
     <div class="loader"></div> Đang tải...
 </div>
 
+<form id="chat-form" class="d-flex">
+    <input type="text" id="message-input" class="form-control me-2" placeholder="Type your message here..." autocomplete="off">
+    <button type="submit" class="btn btn-primary">Send</button>
+</form>
+
 <script>
     document.getElementById('chat-form').addEventListener('submit', async function (event) {
-    event.preventDefault();
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value;
-    if (!message) return;
+        event.preventDefault();
+        const messageInput = document.getElementById('message-input');
+        const message = messageInput.value;
+        if (!message) return;
 
-    // Add user message to chat box
-    const chatBox = document.getElementById('chat-box');
-    const userMessageDiv = document.createElement('div');
-    userMessageDiv.className = 'message user-message';
-    userMessageDiv.innerHTML = `You: ${message}`;
-    chatBox.appendChild(userMessageDiv);
+        // Add user message to chat box
+        const chatBox = document.getElementById('chat-box');
+        const userMessageDiv = document.createElement('div');
+        userMessageDiv.className = 'message user-message';
+        userMessageDiv.innerHTML = `You: ${message}`;
+        chatBox.appendChild(userMessageDiv);
 
-    messageInput.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
+        messageInput.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Hiển thị hiệu ứng chờ
-    const loadingDiv = document.getElementById('loading');
-    loadingDiv.style.display = 'block';
+        // Hiển thị hiệu ứng chờ
+        const loadingDiv = document.getElementById('loading');
+        loadingDiv.style.display = 'block';
 
-    // Send message to server and get response
-    const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ question: message })
+        // Send message to server and get response
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ question: message })
+        });
+
+        // Ẩn hiệu ứng chờ sau khi nhận phản hồi
+        loadingDiv.style.display = 'none';
+
+        // Đảm bảo rằng bạn nhận được đúng dữ liệu từ server
+        const data = await response.json();
+        console.log('Response from server:', data);  // Kiểm tra dữ liệu nhận được
+        const assistantMessage = data.answer;
+
+        // Thay thế ký tự xuống dòng bằng thẻ <br>
+        const formattedMessage = assistantMessage.replace(/\n/g, '<br>');
+
+        // Add assistant message to chat box
+        const assistantMessageDiv = document.createElement('div');
+        assistantMessageDiv.className = 'message assistant-message';
+        assistantMessageDiv.innerHTML = `Assistant: ${formattedMessage}`;
+        chatBox.appendChild(assistantMessageDiv);
+
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
-
-    // Ẩn hiệu ứng chờ sau khi nhận phản hồi
-    loadingDiv.style.display = 'none';
-
-    // Đảm bảo rằng bạn nhận được đúng dữ liệu từ server
-    const data = await response.json();
-    console.log('Response from server:', data);  // Kiểm tra dữ liệu nhận được
-    const assistantMessage = data.answer;
-
-    // Thay thế ký tự xuống dòng bằng thẻ <br>
-    const formattedMessage = assistantMessage.replace(/\n/g, '<br>');
-
-    // Add assistant message to chat box
-    const assistantMessageDiv = document.createElement('div');
-    assistantMessageDiv.className = 'message assistant-message';
-    assistantMessageDiv.innerHTML = `Assistant: ${formattedMessage}`;
-    chatBox.appendChild(assistantMessageDiv);
-
-    chatBox.scrollTop = chatBox.scrollHeight;
-});
-
 </script>
 {%endblock%}

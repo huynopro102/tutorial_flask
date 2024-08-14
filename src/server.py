@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, session, jsonify 
+from flask import Flask, redirect, url_for, render_template, request, session, jsonify
 from dotenv import load_dotenv
 import os
 
@@ -7,7 +7,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
 # Cau hinh
-model_file = "models/vinallama-2.7b-chat_q5_0.gguf"
+model_file = "models/vinallama-7b-chat_q5_0.gguf"
 
 # Load LLM
 def load_llm(model_file):
@@ -47,13 +47,14 @@ app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "QAKpoM2WhY3GVawOJpvDx34u5fKlThji"
 
+
+@app.route("/training")
+def training():
+    return render_template("training.html")
+
 @app.route("/")
 def home():
     return render_template("home.html")
-
-@app.route("/contact")
-def content():
-    return render_template("contact.html")
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -67,21 +68,6 @@ def login():
             return redirect(url_for("printName"))  # Không truyền tham số name nữa
     return render_template("login.html")
 
-@app.route("/user")
-def printName():
-    if "user" in session:
-        name = session["user"]
-        return f"<h1>hello {name}</h1>"
-    return redirect(url_for("login"))
-
-@app.route("/blog/<int:blog_id>")
-def printBlog(blog_id):
-    return f"<h1>blog number {blog_id}</h1>"
-
-@app.route("/admin")
-def helloAdmin():
-    return "hello admin"
-
 @app.route("/chat")
 def chat():
     return render_template("chat.html")
@@ -91,10 +77,10 @@ def api_chat():
     data = request.get_json()
     question = data.get("question")
     response = llm_chain.invoke({"question": question})
-    
+
     # Đảm bảo response là chuỗi văn bản
     answer = str(response)
-    
+
     return jsonify({"answer": answer})
 
 
