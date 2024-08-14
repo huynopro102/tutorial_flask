@@ -1,4 +1,5 @@
 venv
 models
 vector_db
-models
+new_venv
+langchain.pptx
