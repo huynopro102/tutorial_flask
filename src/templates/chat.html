@@ -162,6 +162,18 @@
 
       <div id="chat-box" class="container rounded p-3 mb-3"></div>
 
+      <div id="chat-box" class="container rounded p-3 mb-3">
+        {% if chat_history %}
+          {% for chat in chat_history %}
+            <div class="chat-message user-message">
+              <span><strong>{{ chat.timestamp }}</strong>: {{ chat.message }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No chat history available.</p>
+        {% endif %}
+      </div>
+      
       <div class="chat-container">
         <div id="chat-log"></div>
       </div>

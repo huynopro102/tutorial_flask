@@ -10,6 +10,9 @@ from langchain.prompts import PromptTemplate
 
 from werkzeug.security import generate_password_hash
 
+from datetime import datetime  # Thêm dòng này để nhập datetime
+import pytz
+
 # Cau hinh
 model_file = "models/vinallama-2.7b-chat_q5_0.gguf"
 
@@ -58,6 +61,14 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
+    
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')))
+
+    user = db.relationship('User', backref=db.backref('chats', lazy=True))
     
 @app.route("/")
 def home():
@@ -132,12 +143,16 @@ def helloAdmin():
 @app.route("/chat")
 def chat():
     user_email = session.get('user_email', None)
-    # return render_template("chat.html")
-    return render_template('chat.html', user_logged_in=user_email is not None, user_email=user_email)
+    if user_email:
+        user = User.query.filter_by(email=user_email).first()
+        if user:
+            chat_history = Chat.query.filter_by(user_id=user.id).order_by(Chat.timestamp.asc()).all()
+        else:
+            chat_history = []
+    else:
+        chat_history = []
+    return render_template('chat.html', user_logged_in=user_email is not None, user_email=user_email, chat_history=chat_history)
 
-# @app.route("/register")
-# def register():
-#     return render_template("register.html")
 
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
@@ -145,9 +160,16 @@ def api_chat():
     question = data.get("question")
     response = llm_chain.invoke({"question": question})
     
-    # Đảm bảo response là chuỗi văn bản
     answer = str(response)
-    
+
+    # Lưu đoạn chat vào cơ sở dữ liệu
+    if 'user_email' in session:
+        user = User.query.filter_by(email=session['user_email']).first()
+        if user:
+            new_chat = Chat(user_id=user.id, message=question + "\n" + answer)
+            db.session.add(new_chat)
+            db.session.commit()
+
     return jsonify({"answer": answer})
 
 
