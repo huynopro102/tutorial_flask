@@ -1,4 +1,7 @@
 .idea
 models
+venv
+vector_db
 data
-venv_1
+data_pdf
+instance

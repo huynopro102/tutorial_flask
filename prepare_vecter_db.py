@@ -1,63 +1,63 @@
-from langchain_text_splitters import  CharacterTextSplitter
-from sentence_transformers import SentenceTransformer
-#Sử dụng HuggingFaceEmbeddings thay cho GPT4AllEmbeddings nếu gặp vấn đề tương thích.
-pdf_data_path = "data"
-vector_db_path = "vector_db"  # Đảm bảo khai báo biến này nếu chưa khai báo
+from langchain.text_splitter import CharacterTextSplitter , RecursiveCharacterTextSplitter
+from langchain.document_loaders import  DirectoryLoader , PyPDFLoader , TextLoader
+from langchain.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# hàm tạo ra 1 vector từ 1 đoạn text
-def create_vector_db_from_text():
-    raw_text = """
-Xu hướng nghiên cứu và sử dụng các loại phân 
-bón có bổ sung các chất có hoạt tính kích thích sinh 
-học giúp nâng cao hiệu quả sử dụng dinh dưỡng là 
-xu hướng tất yếu trên thế giới và phát triển nhanh 
-trong những năm gần đây nhằm giúp nâng cao hiệu 
-quả sử dụng dinh dưỡng trong đất vừa làm giảm thất 
-thoát, lãng phí gây ô nhiễm cho môi trường. 
-Ngày càng có nhiều bằng chứng khoa học cho 
-thấy hiệu quả của việc sử dụng chất hoạt tính kích 
-thích sinh học được ứng dụng vào nông nghiệp trên 
-các cây trồng khác nhau. Các kết quả nghiên cứu cho 
-thấy tác động của các chất hoạt tính sinh học khác 
-nhau trên nhiều loại cây trồng như giúp cây phát 
-triển rễ, tăng cường sự hấp thu chất dinh dưỡng và 
-tăng khả năng chống chịu stress môi trường (Yakhin 
-Oleg et al., 2013; Calvo et al., 2014; Bulgari et al., 
-2015; Colla and Rouphael, 2015).
-"""
-    # chia nhỏ văn bản
+file_path = "data"
+
+
+def create_vector_db_from_text_files():
+    # load 1 file.txt
+    # loader = TextLoader("data/luat hinh su trang (12).txt")
+    # documents = loader.load()
+    
+    # Load all .txt files from the directory
+    loader = DirectoryLoader(
+        path="data", 
+        glob="*.txt", 
+        loader_cls=TextLoader,
+        loader_kwargs={"encoding": "utf-8"}  # Specify UTF-8 encoding
+    )
+    documents = loader.load()
+
+    # Chia nhỏ văn bản
     text_splitter = CharacterTextSplitter(
         separator="\n",
-        chunk_size=20,
-        chunk_overlap=5,  # Đúng tham số là chunk_overlap
+        chunk_size=512,  # Đặt chunk_size thành 200 ký tự
+        chunk_overlap=100,  # Bạn có thể thay đổi giá trị này để điều chỉnh sự trùng lặp
         length_function=len,
     )
 
-    chunks = text_splitter.split_text(raw_text)
+    chunks = text_splitter.split_documents(documents)
 
-    # Embedding
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-# embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    # Đưa vào Faiss Vector DB
-    # db = FAISS.from_texts(texts=chunks, embedding=embedding_model)
-    # db.save_local(vector_db_path)
-    # return db
+    for index, item in enumerate(chunks):
+        print(f"{index} , {item.page_content}")
+
+    # Load embedding model
+    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    
+    # Lưu vào database
+    db = FAISS.from_documents(chunks, embedding=embedding_model)
+    db.save_local("vector_db")
+
+def create_vector_db_from_documents():
+    # Load PDF files from directory
+    loader = DirectoryLoader(path="data", glob="*.pdf", loader_cls=PyPDFLoader)
+    documents = loader.load()
+
+    # Split documents into chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=100)
+    chunks = text_splitter.split_documents(documents)
+    if not chunks:  
+        print("No chunks generated. Skipping embedding creation.")
+        return  # Exit the function early
+    # Create embeddings
+    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    db = FAISS.from_documents(chunks, embedding=embedding_model)
+
+    # Save the database
+    db.save_local("vector_db_pdf")
 
 
-# def create_db_from_files():
-#     # Khai báo loader để quét toàn bộ thư mục data
-#     loader = DirectoryLoader(pdf_data_path, glob="*.pdf", loader_cls=PyMuPDFLoader)
-#     documents = loader.load()
-
-#     text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=50)
-#     chunks = text_splitter.split_documents(documents)
-
-#     # Embedding
-#     embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-#     db = FAISS.from_documents(chunks, embedding_model)
-#     db.save_local(vector_db_path)
-#     return db
-
-
-create_vector_db_from_text()
-# create_db_from_files()
+create_vector_db_from_text_files()
+# create_vector_db_from_documents()

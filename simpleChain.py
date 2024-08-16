@@ -1,47 +1,55 @@
 from langchain_community.llms import CTransformers
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+# cau hinh
+model_file = "models/vinallama-7b-chat_q5_0.gguf"
 
-# Cau hinh
-model_file = "models/vinallama-2.7b-chat_q5_0.gguf"
-
-
-
-# Load LLM
+# load llm
 def load_llm(model_file):
     llm = CTransformers(
         model=model_file,
         model_type="llama",
-        max_new_tokens=1024,
-        temperature=0.01
+        max_new_tokens=20,
+        temperature=0.01,
     )
     return llm
 
-# Tao prompt template
-def creat_prompt(template):
-    prompt = PromptTemplate(template = template, input_variables=["question"])
+
+# create prompt
+def create_prompt(template):
+    prompt = PromptTemplate(template=template, input_variables=['question'])
     return prompt
 
 
-# Tao simple chain
-def create_simple_chain(prompt, llm):
-    llm_chain = LLMChain(prompt=prompt, llm=llm)
+# create chain
+def simple_chain(llm,prompt):
+    llm_chain = LLMChain(prompt=prompt,llm=llm)
     return llm_chain
 
-# Chay thu chain
 
-template = """<|im_start|>system
-Bạn là một trợ lí AI hữu ích. Hãy trả lời người dùng một cách chính xác.
-<|im_end|>
-<|im_start|>user
-{question}<|im_end|>
-<|im_start|>assistant"""
+# tao template
+template="""
+system
+Bạn là một trợ lí AI chuyên cung cấp câu trả lời ngắn gọn, đúng trọng tâm.
 
-prompt = creat_prompt(template)
+user {question}
+assistant
+"""
+
+
+# tao prompt template
+prompt = create_prompt(template)
+
+# tao llm
 llm = load_llm(model_file)
-llm_chain = create_simple_chain(prompt, llm)
 
-question = """một cộng một bằng mấy ?"""
-response = llm_chain.invoke({"question":question})
+# Tạo simple chain mới
+llm_chain = simple_chain(llm, prompt)
+
+question = """
+Liệt kê Điều 8 : các hành vi bị nghiêm cấm trong lĩnh vực lao động của bộ
+Luật lao động chương 1 những quy định chung
+"""
+response = llm_chain.invoke({"question": question})
+
 print(response)
-

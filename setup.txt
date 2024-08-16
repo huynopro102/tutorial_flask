@@ -9,6 +9,7 @@ faiss-cpu
 openai
 pymupdf
 python-dotenv
+plotly
 # chay lenh pip install -r setup.txt để tải các thư viện
 # all-MiniLM-L6-v2-f16.gguf
 # vinallama-2.7b-chat_q5_0.gguf 
